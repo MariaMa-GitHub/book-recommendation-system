@@ -43,6 +43,6 @@ class Book:
         self.link = df.iloc[i]['link']
         self.image = df.iloc[i]['image_url']
 
-    def __str__(self):
-
-        return f'{self.id}, {self.title}: link {self.link}, rating = {self.average_rating}'
+    # def __str__(self):
+    #
+    #     return f'{self.id}, {self.title}: link {self.link}, rating = {self.average_rating}'

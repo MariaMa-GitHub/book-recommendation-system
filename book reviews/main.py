@@ -83,6 +83,6 @@ if __name__ == '__main__':
     library = Library()
     library.load_books(df)
 
-    print(len(library.books))
-    print(df.columns)
-    print(df.isna())
+    # print(len(library.books))
+    # print(df.columns)
+    # print(df.isna())
