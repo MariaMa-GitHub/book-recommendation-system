@@ -79,28 +79,5 @@ if __name__ == '__main__':
     library = Library()
     library.load_books(df)
 
-    # print([book for book in library.books][0])
-    # print([book for book in library.books][1])
-    # print([book for book in library.books][2])
-
-    # print(len(library.books))
-    # # print(df.columns)
-    # # print(df.isna())
-    #
-    # print(len([book for book in library.books if library.books[book].average_rating > 4.5]))
-    # print(len([book for book in library.books if library.books[book].num_pages > 1000]))
-    #
-    # pop = {library.books[book].popular_shelves for book in library.books}
-    #
-    # print({item['name'] for item in pop})
-
-    # print(min({library.books[book].num_pages for book in library.books}))
-    # print(max({library.books[book].num_pages for book in library.books}))
-    #
-    # print(min({library.books[book].ratings_count for book in library.books}))
-    # print(max({library.books[book].ratings_count for book in library.books}))
-    #
-    # print({library.books[book].language for book in library.books})
-
     p = Platform(library.books)
     p.run()
