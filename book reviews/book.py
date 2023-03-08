@@ -21,23 +21,23 @@ class Book:
     average_rating: float
     ratings_count: int
     description: str
-    similar_books: list[int]
+    similar_books: list
     link: str
     image: str
 
     def __init__(self, df: pandas.DataFrame, i: int):
 
-        self.id = df.iloc[i]['book_id']
+        self.id = int(df.iloc[i]['book_id'])
         self.title = df.iloc[i]['title']
         self.authors = [str(df.iloc[i]['authors'])]
         self.publisher = df.iloc[i]['publisher']
-        self.publication_year = df.iloc[i]['publication_year']
+        self.publication_year = int(df.iloc[i]['publication_year'])
         self.country = df.iloc[i]['country_code']
         self.language = df.iloc[i]['language_code']
-        self.num_pages = df.iloc[i]['num_pages']
+        self.num_pages = int(df.iloc[i]['num_pages'])
         self.popular_shelves = [str(df.iloc[i]['popular_shelves'])]
-        self.average_rating = df.iloc[i]['average_rating']
-        self.ratings_count = df.iloc[i]['ratings_count']
+        self.average_rating = float(df.iloc[i]['average_rating'])
+        self.ratings_count = int(df.iloc[i]['ratings_count'])
         self.description = df.iloc[i]['description']
         self.similar_books = df.iloc[i]['similar_books']
         self.link = df.iloc[i]['link']
