@@ -5,6 +5,7 @@ import datetime
 import recommendation_system_kwz
 import relevance_system_kwz
 # TODO: manager system to be completed...
+# maps used ids to user objects
 
 
 class ManagerSystem:

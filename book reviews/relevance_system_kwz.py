@@ -5,7 +5,7 @@ further recomendations.
 """
 from __future__ import annotations
 from dataclasses import dataclass
-from library import book_repo
+from library_kwz import book_repo
 
 
 RELEVANCE_FACTOR = 2
@@ -26,8 +26,9 @@ class BookGraph:
         """..."""
         self.vertices = {}
 
-    def contains(self, book_id: str) -> bool:
-        """..."""
+    def __contains__(self, book_id: str) -> bool:
+        """Return whether book_id is in self.vertices.
+        """
         return book_id in self.vertices
 
     def add_vertex(self, book_id: str) -> None:
@@ -36,7 +37,7 @@ class BookGraph:
 
     def add_edge(self, book_id1: str, book_id2: str) -> None:
         """..."""
-        if self.contains(book_id1) and self.contains(book_id2):
+        if book_id1 in self and book_id2 in self:
             book_vertex1 = self.vertices[book_id1]
             book_vertex2 = self.vertices[book_id2]
             book_vertex1.neighbours.append(book_vertex2)

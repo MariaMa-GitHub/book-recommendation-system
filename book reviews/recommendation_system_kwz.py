@@ -6,12 +6,13 @@ a recommendation system) to make recommendations.
 """
 from __future__ import annotations
 from typing import Any
-import library
+import library_kwz
+
 
 SYSTEM_START = '*'
-LIBRARY = library.book_repo
-# ORDERED_LIBRARY = library.book_list
-GENRE_BOOK_MAP = library.gbm
+LIBRARY = library_kwz.book_repo
+REVIEW_REPO = library_kwz.review_repo
+GENRE_REPO = library_kwz.genre_repo
 
 
 class RecommendationSystem:
@@ -20,109 +21,114 @@ class RecommendationSystem:
     which haven't appeared in this user's past reading activities.
     """
     item: Any
-    subsystems: list[RecommendationSystem]
+    subsystems: dict[Any, RecommendationSystem]  # root of recsys --> recsys object
 
     def __init__(self, root: Any = SYSTEM_START) -> None:
         """Initialize this recommendation system."""
         self.item = root
-        self.subsystems = []
+        self.subsystems = {}
 
     def add_subsystem(self, subsystem: RecommendationSystem) -> None:
-        """Add a subsystem to this recommendation system."""
-        self.subsystems.append(subsystem)
+        """TODO: ..."""
+        self.subsystems[subsystem.item] = subsystem
 
-    def recommend(self, responses: list) -> list[str]:
-        """Return a list of IDs of recommended books based on the user's responses to a
-        sequence of pre-set questions.
+    def insert_attributes(self, book_attributes: list) -> None:
+        """TODO: ..."""
+        self._insert_attributes_util(book_attributes, 0)
 
-        This sequence of questions includes the following:
-            1. Is the user's age at least 18 years old?
-            2. What genres would the user like to select?
-            3. What range of number of pages of a book does the user prefer?
-            4. Does the user accept E-book?
-
+    def _insert_attributes_util(self, book_attributes: list[list], start: int) -> None:
+        """TODO: ...
+        
         Preconditions:
-            - isinstance(responses[0], bool)
-            - isinstance(responses[1], set)
-            - isinstance(responses[2], tuple)
-            - isinstance(responses[3], bool)
+            - all(isinstance(entry, list) for entry in book_attributes)
         """
-        adult, genres, num_pages_range, ebook_ok = responses[0], responses[1], responses[2], responses[3]
-        if adult:
-            curr_system = self.subsystems[1]
-        else:
-            curr_system = self.subsystems[0]
+        if start != len(book_attributes):
+            curr_attributes = book_attributes[start]
+            for attribute in curr_attributes:
+                if attribute not in self.subsystems:
+                    self.add_subsystem(RecommendationSystem(attribute))
+                self.subsystems[attribute]._insert_attributes_util(book_attributes, start + 1)
 
-        subsystem_indicies = self.find_subsystems_by_genres(genres)
-        all_recommendations = []
-        for index in subsystem_indicies:
-            if index != -1:
-                recommendations = curr_system.subsystems[index].explore(num_pages_range, ebook_ok)
-                all_recommendations.extend(recommendations)
-
-        return all_recommendations
-
-    def find_subsystems_by_genres(self, genres: set[str]) -> list[int]:
-        """Return a list of indicies indicating the position of the subsystem containing the given genre
-        in genres.
-
+    def initialize(self) -> None:
+        """TODO: ...
+        
         Preconditions:
-            - isinstance(self.item, bool)
+            - self.item == SYSTEM_START
+            - self.subsystems == {}
         """
-        indicies = []
-        for genre in genres:
-            i = 0
-            while i < len(self.subsystems) and self.subsystems[i].item != genre:
-                i += 1
-
-            if i == len(self.subsystems):
-                indicies.append(-1)
-            else:
-                indicies.append(i)
-
-        return indicies
-
-    def explore(self, num_pages_range: tuple[int, int], ebook_ok: bool) -> list[str]:
-        """Return a list of IDs of the recommended books based on the user's responses
-        on the range of the number of pages the user prefers and whether the user accpets
-        the E-book.
-
-        Preconditions:
-            - isinstance(self.item, dict)
-            - self.subsystems == []
-        """
-        recommendation_result = []
-        genre = list(self.item.keys())[0]
-        book_ids = self.item[genre]
-        for book_id in book_ids:
+        for book_id in LIBRARY:
             book = LIBRARY[book_id]
-            if book.num_pages in range(num_pages_range[0], num_pages_range[1] + 1) or \
-                    book.is_ebook == ebook_ok:  # TODO: second condition to be modified...
-                recommendation_result.append((book.average_rating, book_id))
+            try:
+                book_attributes = [[book._num_pages], GENRE_REPO[book_id], [book._language_code], [book._is_ebook]]
+                print(f'len(book_attributes): {len(book_attributes)}')  # TODO: to be deleted...
+                self.insert_attributes(book_attributes)
+            except KeyError:
+                pass    
 
-        recommendation_result.sort(reverse=True)
-        for i in range(len(recommendation_result)):
-            recommendation_result[i] = recommendation_result[i][1]
+    # def primary_recommend(self, mandatory_responses: list, start: int) -> list[library_kwz.book]:
+    #     """TODO: ...
+    #     responses = [page_range (tuple of ints), genre (str), language (str), wants_ebook (bool)]
+    #     """
+    #     pass
 
-        return recommendation_result
+    def recommend(self, responses: list, start: int = 0) -> list[library_kwz.Book]:
+        """TODO: ...
+        
+        responses = [page_range (tuple of ints), genre (str), language (str), wants_ebook (bool),
+                    title (optional info, str, case insensitive), author (optional info, author name, str), 
+                    publisher (optional info, str, case insensitive), publication_year (optional info, int or None)]
+        """
+        if start == len(responses):
+            return []
+        else:
+            result = []
+            for attribute in self.subsystems:
+                if start == 0:
+                    if attribute is None or attribute in range(responses[0], responses[1] + 1):  # num_pages attribute
+                        result.extend(self.subsystems[attribute].recommend(responses, start + 1))
+                else:
+                    if attribute == responses[start]:
+                        result.extend(self.subsystems[attribute].recommend(responses, start + 1))
+            return result   
+
+    def depth(self) -> int:
+        if self.subsystems == {}:
+            return 1
+        else:
+            return 1 + max(self.subsystems[s].depth() for s in self.subsystems)            
+
+    def __len__(self) -> int:
+        if self.subsystems == {}:
+            return 1
+        else:
+            return 1 + sum(self.subsystems[s].__len__() for s in self.subsystems)     
 
 
-def initialize_system() -> RecommendationSystem:
-    """Initialize a decision-tree-based recommendation system."""
-    system = RecommendationSystem()
-    underage_system = RecommendationSystem(False)
-    adult_system = RecommendationSystem(True)
-    # TODO: separate underage books with others with additional information
-    for genre in GENRE_BOOK_MAP:
-        underage_system.add_subsystem(RecommendationSystem(genre))
-    for genre in GENRE_BOOK_MAP:
-        adult_system.add_subsystem(RecommendationSystem(genre))
+# def initialize_system(empty_system: RecommendationSystem) -> None:
+#     """Initialize the recommendation system
 
-    system.add_subsystem(underage_system)
-    system.add_subsystem(adult_system)
-
-    return system
-
+#     Preconditions:
+#         - empty_system.item == SYSTEM_START
+#     """
+#     for book_id in LIBRARY:
+#         if book_id in GENRE_REPO:
+#             book = LIBRARY[book_id]
+#             book_attributes = [[book._num_pages], GENRE_REPO[book_id], [book._language_code], [book._is_ebook]]
+#             empty_system.insert_attributes(book_attributes)
+    
 
 if __name__ == '__main__':
-    pass
+    # rec_sys = RecommendationSystem()
+    # initialize_system(rec_sys)
+    # print(len(rec_sys.subsystems))
+    # print(rec_sys.item)
+    # lst = [[1],[2], [3], [4]]
+    rec_sys = RecommendationSystem()
+    rec_sys.initialize()
+    print(all(book_id not in GENRE_REPO for book_id in LIBRARY))
+    # print(len(rec_sys.subsystems))
+    # print(len(rec_sys))
+
+
+
+
