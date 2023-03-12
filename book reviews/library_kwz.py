@@ -269,6 +269,7 @@ def build_review_repo(review_file: str) -> dict[str, dict[str, Review]]:
 book_repo = build_book_repo(BOOK_PATH)
 genre_repo = build_genre_repo(GENRE_PATH)
 review_repo = build_review_repo(REVIEW_PATH)
-print(any(book_id in genre_repo for book_id in book_repo))
-# print(f'len(book_repo): {len(book_repo)}')
+print(any(book_id in genre_repo for book_id in book_repo))  # TODO: here...
+print(f'len(book_repo): {len(book_repo)}')
+
 

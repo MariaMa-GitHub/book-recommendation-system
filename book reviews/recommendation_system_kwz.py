@@ -125,8 +125,8 @@ if __name__ == '__main__':
     # lst = [[1],[2], [3], [4]]
     rec_sys = RecommendationSystem()
     rec_sys.initialize()
-    print(all(book_id not in GENRE_REPO for book_id in LIBRARY))
-    # print(len(rec_sys.subsystems))
+    print(all(book_id not in GENRE_REPO for book_id in LIBRARY))  # TODO: here...
+    print(len(rec_sys.subsystems))
     # print(len(rec_sys))
 
 
