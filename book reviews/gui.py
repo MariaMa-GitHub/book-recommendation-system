@@ -391,10 +391,9 @@ class Window(QMainWindow):
         Switch to next window
         """
 
-        if self.current_window == 0:
-            self.btn_exit.setText('Back')
-
         match self.current_window:
+            case 0:
+                self.btn_exit.setText('Back')
             case 1:
                 self.data['min_num_pages'] = self.min_pages_sld.value()
                 self.data['max_num_pages'] = self.max_pages_sld.value()
@@ -499,7 +498,8 @@ class Window(QMainWindow):
 
         book = self.books[self.current_book]
 
-        return 'Title: ' + book.title + '\nAuthor(s): ' + ''.join(['- ' + author + '\n' for author in book.authors]) \
+        return 'Title: ' + book.title + '\n\nAuthor(s): \n' \
+            + ''.join(['- ' + book.authors[author] + '\n' for author in book.authors]) \
             + '\nCountry: ' + book.country + '\nLanguage: ' + book.language + '\n\nNumber of pages: ' \
             + str(book.num_pages) + '\n\nAverage rating: ' + str(book.average_rating) + '\nRating count: ' \
             + str(book.ratings_count) + '\n\nDescription: \n\n' + book.description + '\n\nLink: ' + book.link
