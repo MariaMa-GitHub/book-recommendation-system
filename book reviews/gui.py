@@ -391,12 +391,37 @@ class Window(QMainWindow):
         Switch to next window
         """
 
+        error = False
+
         match self.current_window:
             case 0:
                 self.btn_exit.setText('Back')
             case 1:
                 self.data['min_num_pages'] = self.min_pages_sld.value()
                 self.data['max_num_pages'] = self.max_pages_sld.value()
+
+                if self.data['min_num_pages'] > self.data['max_num_pages']:
+                    error = True
+                    dialog = QMessageBox()
+                    dialog.setText(
+                        'The minimum number of pages is greater than the maximum number of pages.\n\nPlease try again.'
+                    )
+                    dialog.setIcon(QMessageBox.Icon.Warning)
+                    dialog.setStandardButtons(QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok)
+                    dialog.setDefaultButton(QMessageBox.StandardButton.Ok)
+                    dialog.setWindowTitle('Warning!')
+                    dialog.exec()
+                elif self.data['max_num_pages'] - self.data['min_num_pages'] <= 5:
+                    error = True
+                    dialog = QMessageBox()
+                    dialog.setText(
+                        'The range chosen is too restricted.\n\nPlease try again.'
+                    )
+                    dialog.setIcon(QMessageBox.Icon.Warning)
+                    dialog.setStandardButtons(QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok)
+                    dialog.setDefaultButton(QMessageBox.StandardButton.Ok)
+                    dialog.setWindowTitle('Warning!')
+                    dialog.exec()
             case 2:
                 self.data['genre'] = [item.text() for item in self.genre_lst.selectedItems()]
                 self.data['language'] = [item.text() for item in self.language_lst.selectedItems()]
@@ -424,10 +449,12 @@ class Window(QMainWindow):
 
                 self.similar_books_search()
 
-        index = (self.current_window + 1) % self.num_windows
+        if not error:
 
-        self.window_layout.setCurrentIndex(index)
-        self.current_window = index
+            index = (self.current_window + 1) % self.num_windows
+
+            self.window_layout.setCurrentIndex(index)
+            self.current_window = index
 
     def activate_prev_window(self) -> None:
         """
