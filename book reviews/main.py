@@ -79,5 +79,7 @@ if __name__ == '__main__':
     library = Library()
     library.load_books(df)
 
+    print(len(library.books))
+
     p = Platform(library.books)
     p.run()

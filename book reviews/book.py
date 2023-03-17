@@ -17,7 +17,7 @@ class Book:
     country: str
     language: str
     num_pages: int
-    popular_shelves: list[str]
+    genres: list[str]
     average_rating: float
     ratings_count: int
     description: str

@@ -526,7 +526,8 @@ class Window(QMainWindow):
         book = self.books[self.current_book]
 
         return 'Title: ' + book.title + '\n\nAuthor(s): \n' \
-            + ''.join(['- ' + book.authors[author] + '\n' for author in book.authors]) \
+            + ''.join(['- ' + book.authors[author] + '\n' for author in book.authors]) + '\n' \
+            + ''.join(['- ' + genre + '\n' for genre in book.genres]) \
             + '\nCountry: ' + book.country + '\nLanguage: ' + book.language + '\n\nNumber of pages: ' \
             + str(book.num_pages) + '\n\nAverage rating: ' + str(book.average_rating) + '\nRating count: ' \
             + str(book.ratings_count) + '\n\nDescription: \n\n' + book.description + '\n\nLink: ' + book.link
