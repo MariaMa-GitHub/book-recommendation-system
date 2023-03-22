@@ -2,15 +2,14 @@
 Book Genre
 """
 
-from bs4 import BeautifulSoup
-import requests
+# from bs4 import BeautifulSoup
+# import requests
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
-import csv
+# import csv
 
 
 def extract_genre(url: str) -> list[str]:
@@ -36,7 +35,10 @@ def extract_genre(url: str) -> list[str]:
     return [element.text for element in elements]
 
 
-def filter_genres(genres: set[str]):
+def filter_genres(genres: set[str]) -> set[str]:
+    """
+    Filter given book genres by removing unwanted genres (making them much more specific than shelf names)
+    """
 
     genres_to_keep = {'romance', 'fiction', 'young adult', 'high school', 'realistic fiction', 'mythology',
                       'suspense', 'survival', 'time travel', 'action', 'coming of age', 'post apocalyptic', 'humor',
@@ -51,5 +53,7 @@ def filter_genres(genres: set[str]):
 if __name__ == '__main__':
 
     # print(extract_genre('https://www.goodreads.com/book/show/22383541-primperfect'))
-    print(ha())
+
     # print(extract_genre('https://www.goodreads.com/book/show/25421507-the-ticket'))
+
+    pass
