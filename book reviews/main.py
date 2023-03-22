@@ -15,31 +15,29 @@ DATAFRAME_FILENAME = 'data/dataframe.pkl'
 
 def load_data() -> pandas.DataFrame:
     """
-    Read csv data and store it into a dataframe
+    Read book csv data and store it into a Pandas dataframe
     """
 
-    count = 0
     data = []
-    with gzip.open(DATA_FILENAME) as fin:
-        for i in fin:
+    with gzip.open(DATA_FILENAME) as file:
+        for i in file:
             d = json.loads(i)
-            count += 1
             data.append(d)
 
-    df = pandas.DataFrame(data)
-    df = polish_data(df)
+    dataframe = pandas.DataFrame(data)
+    dataframe = polish_data(dataframe)
 
-    return df
+    return dataframe
 
 
 def polish_data(dataframe: pandas.DataFrame) -> pandas.DataFrame:
     """
-    Remove unwanted data from dataframe
+    Remove unwanted data (useless information, null values, etc.) from the given dataframe and return the new dataframe
     """
 
     columns_to_remove = ['isbn', 'text_reviews_count', 'series', 'asin', 'kindle_asin', 'format',
                          'isbn13', 'publication_day', 'publication_month', 'edition_information', 'url',
-                         'work_id']
+                         'work_id', 'image_url']
 
     dataframe = dataframe.drop(columns_to_remove, axis=1)
 
@@ -52,7 +50,7 @@ def polish_data(dataframe: pandas.DataFrame) -> pandas.DataFrame:
 
 def read_data() -> pandas.DataFrame:
     """
-    Read dataframe data
+    Read dataframe data from the saved pkl file
     """
 
     return pandas.read_pickle(DATAFRAME_FILENAME)
@@ -60,7 +58,7 @@ def read_data() -> pandas.DataFrame:
 
 def save_data(dataframe: pandas.DataFrame) -> None:
     """
-    Save dataframe data
+    Save dataframe data into a pkl file
     """
 
     dataframe.to_pickle(DATAFRAME_FILENAME)
@@ -79,7 +77,7 @@ if __name__ == '__main__':
     library = Library()
     library.load_books(df)
 
-    print(len(library.books))
+    # print(len(library.books))
 
     p = Platform(library.books)
     p.run()

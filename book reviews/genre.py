@@ -36,12 +36,20 @@ def extract_genre(url: str) -> list[str]:
     return [element.text for element in elements]
 
 
+def filter_genres(genres: set[str]):
+
+    genres_to_keep = {'romance', 'fiction', 'young adult', 'high school', 'realistic fiction', 'mythology',
+                      'suspense', 'survival', 'time travel', 'action', 'coming of age', 'post apocalyptic', 'humor',
+                      'short stories', 'supernatural', 'fantasy', 'science fiction', 'nonfiction', 'teen', 'childrens',
+                      'historical fiction', 'mystery', 'short stories', 'horror', 'magic', 'gay', 'lesbian',
+                      'paranormal', 'middle grade', 'contemporary', 'dystopia', 'thriller', 'lgbt', 'queer',
+                      'adventure', 'classics'}
+
+    return {genre for genre in genres if genre in genres_to_keep}
+
+
 if __name__ == '__main__':
 
-    print(extract_genre('https://www.goodreads.com/book/show/22383541-primperfect'))
-
-    print(extract_genre('https://www.goodreads.com/book/show/25421507-the-ticket'))
-
-    # print(ha('https://www.goodreads.com/book/show/22383541-primperfect', extract_genres()))
-
-    # print(ha('https://www.goodreads.com/book/show/25421507-the-ticket'))
+    # print(extract_genre('https://www.goodreads.com/book/show/22383541-primperfect'))
+    print(ha())
+    # print(extract_genre('https://www.goodreads.com/book/show/25421507-the-ticket'))

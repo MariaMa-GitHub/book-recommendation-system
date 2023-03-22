@@ -1,12 +1,29 @@
 """
 Book Class
 """
+
 import pandas
 
 
 class Book:
     """
     Contain all the information of a book
+
+    Instance Attributes:
+    - id: book id
+    - title: book title
+    - authors: a mapping of author id to author name, represeting the author(s) of the book
+    - publisher: book publisher
+    - publication_year: publication year of the book
+    - country: book's country of origin
+    - language: language in which the book is written
+    - num_pages: number of pages of the book
+    - genres: a list of the genres of the book
+    - average_rating: the average of book's ratings
+    - ratings_count: the number of book's ratings
+    - description: description of the book
+    - similar_books: a set of similar books' ids
+    - link: Goodreads url of the book
     """
 
     id: int
@@ -17,15 +34,17 @@ class Book:
     country: str
     language: str
     num_pages: int
-    genres: list[str]
+    genres: set[str]
     average_rating: float
     ratings_count: int
     description: str
     similar_books: set[int]
     link: str
-    image: str
 
     def __init__(self, df: pandas.DataFrame, i: int):
+        """
+        Initialize book info using books dataframe
+        """
 
         self.id = int(df.iloc[i]['book_id'])
         self.title = df.iloc[i]['title']
@@ -35,10 +54,9 @@ class Book:
         self.country = df.iloc[i]['country_code']
         self.language = df.iloc[i]['language_code']
         self.num_pages = int(df.iloc[i]['num_pages'])
-        self.genres = []
+        self.genres = {shelf['name'] for shelf in df.iloc[i]['popular_shelves'] if int(shelf['count']) >= 10}
         self.average_rating = float(df.iloc[i]['average_rating'])
         self.ratings_count = int(df.iloc[i]['ratings_count'])
         self.description = df.iloc[i]['description']
         self.similar_books = {int(book_id) for book_id in df.iloc[i]['similar_books']}
         self.link = df.iloc[i]['link']
-        self.image = df.iloc[i]['image_url']

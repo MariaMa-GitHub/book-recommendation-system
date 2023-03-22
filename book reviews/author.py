@@ -8,9 +8,9 @@ import json
 DATA_FILENAME = 'data/authors.json.gz'
 
 
-def load_author_data():
+def load_author_data() -> dict[int, str]:
     """
-    Read and extract json.gz data
+    Read and extract author json.gz data and return a mapping from author id to author name
     """
 
     data = []

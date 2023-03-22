@@ -17,7 +17,7 @@ W_WIDTH = 800
 
 class Platform:
     """
-    Program GUI
+    Program GUI (Graphical User Interface)
 
     Instance Attributes:
     - app: GUI application
@@ -393,61 +393,67 @@ class Window(QMainWindow):
 
         error = False
 
-        match self.current_window:
-            case 0:
-                self.btn_exit.setText('Back')
-            case 1:
-                self.data['min_num_pages'] = self.min_pages_sld.value()
-                self.data['max_num_pages'] = self.max_pages_sld.value()
+        if self.current_window == 0:
 
-                if self.data['min_num_pages'] > self.data['max_num_pages']:
-                    error = True
-                    dialog = QMessageBox()
-                    dialog.setText(
-                        'The minimum number of pages is greater than the maximum number of pages.\n\nPlease try again.'
-                    )
-                    dialog.setIcon(QMessageBox.Icon.Warning)
-                    dialog.setStandardButtons(QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok)
-                    dialog.setDefaultButton(QMessageBox.StandardButton.Ok)
-                    dialog.setWindowTitle('Warning!')
-                    dialog.exec()
-                elif self.data['max_num_pages'] - self.data['min_num_pages'] <= 5:
-                    error = True
-                    dialog = QMessageBox()
-                    dialog.setText(
-                        'The range chosen is too restricted.\n\nPlease try again.'
-                    )
-                    dialog.setIcon(QMessageBox.Icon.Warning)
-                    dialog.setStandardButtons(QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok)
-                    dialog.setDefaultButton(QMessageBox.StandardButton.Ok)
-                    dialog.setWindowTitle('Warning!')
-                    dialog.exec()
-            case 2:
-                self.data['genre'] = [item.text() for item in self.genre_lst.selectedItems()]
-                self.data['language'] = [item.text() for item in self.language_lst.selectedItems()]
-            case 3:
-                if self.title_src.text() in self.categories['title']:
-                    self.data['title'] = self.title_src.text()
-                else:
-                    self.data['title'] = ''
-                if self.author_src.text() in self.categories['author']:
-                    self.data['author'] = self.author_src.text()
-                else:
-                    self.data['author'] = ''
-                if self.publisher_src.text() in self.categories['publisher']:
-                    self.data['publisher'] = self.publisher_src.text()
-                else:
-                    self.data['publisher'] = ''
-                if self.pub_year_src.text() in self.categories['publication year']:
-                    self.data['publication year'] = self.pub_year_src.text()
-                else:
-                    self.data['publication year'] = ''
-                if self.ebook_rad.isChecked():
-                    self.data['ebook'] = True
-                else:
-                    self.data['ebook'] = False
+            self.btn_exit.setText('Back')
 
-                self.similar_books_search()
+        elif self.current_window == 1:
+
+            self.data['min_num_pages'] = self.min_pages_sld.value()
+            self.data['max_num_pages'] = self.max_pages_sld.value()
+
+            if self.data['min_num_pages'] > self.data['max_num_pages']:
+                error = True
+                dialog = QMessageBox()
+                dialog.setText(
+                    'The minimum number of pages is greater than the maximum number of pages.\n\nPlease try again.'
+                )
+                dialog.setIcon(QMessageBox.Icon.Warning)
+                dialog.setStandardButtons(QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok)
+                dialog.setDefaultButton(QMessageBox.StandardButton.Ok)
+                dialog.setWindowTitle('Warning!')
+                dialog.exec()
+            elif self.data['max_num_pages'] - self.data['min_num_pages'] <= 5:
+                error = True
+                dialog = QMessageBox()
+                dialog.setText(
+                    'The range chosen is too restricted.\n\nPlease try again.'
+                )
+                dialog.setIcon(QMessageBox.Icon.Warning)
+                dialog.setStandardButtons(QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok)
+                dialog.setDefaultButton(QMessageBox.StandardButton.Ok)
+                dialog.setWindowTitle('Warning!')
+                dialog.exec()
+
+        elif self.current_window == 2:
+
+            self.data['genre'] = [item.text() for item in self.genre_lst.selectedItems()]
+            self.data['language'] = [item.text() for item in self.language_lst.selectedItems()]
+
+        elif self.current_window == 3:
+
+            if self.title_src.text() in self.categories['title']:
+                self.data['title'] = self.title_src.text()
+            else:
+                self.data['title'] = ''
+            if self.author_src.text() in self.categories['author']:
+                self.data['author'] = self.author_src.text()
+            else:
+                self.data['author'] = ''
+            if self.publisher_src.text() in self.categories['publisher']:
+                self.data['publisher'] = self.publisher_src.text()
+            else:
+                self.data['publisher'] = ''
+            if self.pub_year_src.text() in self.categories['publication year']:
+                self.data['publication year'] = self.pub_year_src.text()
+            else:
+                self.data['publication year'] = ''
+            if self.ebook_rad.isChecked():
+                self.data['ebook'] = True
+            else:
+                self.data['ebook'] = False
+
+            self.similar_books_search()
 
         if not error:
 
@@ -461,11 +467,10 @@ class Window(QMainWindow):
         Switch to next window
         """
 
-        match self.current_window:
-            case 0:
-                sys.exit()
-            case 1:
-                self.btn_exit.setText('Exit')
+        if self.current_window == 0:
+            sys.exit()
+        elif self.current_window == 1:
+            self.btn_exit.setText('Exit')
 
         index = (self.current_window - 1) % self.num_windows
 
@@ -486,7 +491,7 @@ class Window(QMainWindow):
 
         self.max_pages_lbl.setText(f'{i} page(s)')
 
-    def select_book_id(self, book) -> None:
+    def select_book_id(self, book: Any) -> None:
         """
         Fill the book ID searchbar with the ID of the selected book
         """
@@ -525,9 +530,14 @@ class Window(QMainWindow):
 
         book = self.books[self.current_book]
 
+        if book.genres != set():
+            genres = '\nGenres:\n' + ''.join(['- ' + genre + '\n' for genre in book.genres])
+        else:
+            genres = ''
+
         return 'Title: ' + book.title + '\n\nAuthor(s): \n' \
-            + ''.join(['- ' + book.authors[author] + '\n' for author in book.authors]) + '\n' \
-            + ''.join(['- ' + genre + '\n' for genre in book.genres]) \
+            + ''.join(['- ' + book.authors[author] + '\n' for author in book.authors]) \
+            + genres \
             + '\nCountry: ' + book.country + '\nLanguage: ' + book.language + '\n\nNumber of pages: ' \
             + str(book.num_pages) + '\n\nAverage rating: ' + str(book.average_rating) + '\nRating count: ' \
             + str(book.ratings_count) + '\n\nDescription: \n\n' + book.description + '\n\nLink: ' + book.link
@@ -582,7 +592,9 @@ class Window(QMainWindow):
                 file.writelines([line + '\n' for line in lines])
 
 
-# if __name__ == '__main__':
-#
-#     p = Platform()
-#     p.run()
+if __name__ == '__main__':
+
+    # p = Platform()
+    # p.run()
+
+    pass
