@@ -1,48 +1,67 @@
 """
 Book Class
 """
+
 import pandas
 
 
 class Book:
     """
     Contain all the information of a book
+
+    Instance Attributes:
+    - book_id: book id
+    - title: book title
+    - authors: a mapping of author id to author name, represeting the author(s) of the book
+    - publisher: book publisher
+    - publication_year: publication year of the book
+    - country: book's country of origin
+    - language: language in which the book is written
+    - num_pages: number of pages of the book
+    - genres: a list of the genres of the book
+    - average_rating: the average of book's ratings
+    - ratings_count: the number of book's ratings
+    - description: description of the book
+    - similar_books: a set of similar books' ids
+    - link: Goodreads url of the book
     """
 
-    id: int
+    book_id: int
     title: str
-    authors: list[str]
+    authors: dict[int, str]
     publisher: str
     publication_year: int
     country: str
     language: str
     num_pages: int
-    popular_shelves: list[str]
+    genres: set[str]
     average_rating: float
     ratings_count: int
     description: str
-    similar_books: list[int]
+    similar_books: set[int]
     link: str
-    image: str
 
     def __init__(self, df: pandas.DataFrame, i: int):
+        """
+        Initialize book info using books dataframe
+        """
 
-        self.id = df.iloc[i]['book_id']
+        self.book_id = int(df.iloc[i]['book_id'])
         self.title = df.iloc[i]['title']
-        self.authors = [str(df.iloc[i]['authors'])]
+        self.authors = {int(author['author_id']): '' for author in df.iloc[i]['authors']}
         self.publisher = df.iloc[i]['publisher']
-        self.publication_year = df.iloc[i]['publication_year']
+        self.publication_year = int(df.iloc[i]['publication_year'])
         self.country = df.iloc[i]['country_code']
         self.language = df.iloc[i]['language_code']
-        self.num_pages = df.iloc[i]['num_pages']
-        self.popular_shelves = [str(df.iloc[i]['popular_shelves'])]
-        self.average_rating = df.iloc[i]['average_rating']
-        self.ratings_count = df.iloc[i]['ratings_count']
+        self.num_pages = int(df.iloc[i]['num_pages'])
+        self.genres = {shelf['name'] for shelf in df.iloc[i]['popular_shelves'] if int(shelf['count']) >= 10}
+        self.average_rating = float(df.iloc[i]['average_rating'])
+        self.ratings_count = int(df.iloc[i]['ratings_count'])
         self.description = df.iloc[i]['description']
-        self.similar_books = df.iloc[i]['similar_books']
+        self.similar_books = {int(book_id) for book_id in df.iloc[i]['similar_books']}
         self.link = df.iloc[i]['link']
-        self.image = df.iloc[i]['image_url']
 
-    # def __str__(self):
-    #
-    #     return f'{self.id}, {self.title}: link {self.link}, rating = {self.average_rating}'
+    def get_attributes(self) -> list:
+        """Return a list of attributes that are used in the tree-based recommendation system."""
+        return [self.num_pages, self.country, self.language,
+                self.title, self.authors, self.publisher, self.publication_year, self.book_id]

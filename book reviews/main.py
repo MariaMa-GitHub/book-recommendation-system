@@ -6,83 +6,85 @@ import gzip
 import json
 import pandas
 from numpy import nan
-
+from gui import Platform
 from library import Library
-
-DATA_FILENAME = 'data/books.json.gz'
-DATAFRAME_FILENAME = 'data/dataframe.pkl'
+DATA_FILENAME = '/Users/kaiwenzheng/Desktop/CURRENT/csc111-group-project-gui-maria/book reviews/data/books.json.gz'
+DATAFRAME_FILENAME = '/Users/kaiwenzheng/Desktop/CURRENT/csc111-group-project-gui-maria/book reviews/data/dataframe.pkl'
 
 
 def load_data() -> pandas.DataFrame:
     """
-    Read csv data and store it into a dataframe
+    Read book csv data and store it into a Pandas dataframe
     """
 
-    count = 0
     data = []
-    with gzip.open(DATA_FILENAME) as fin:
-        for i in fin:
+    with gzip.open(DATA_FILENAME) as file:
+        for i in file:
             d = json.loads(i)
-            count += 1
             data.append(d)
 
-    df = pandas.DataFrame(data)
-    df = polish_data(df)
+    dataframe = pandas.DataFrame(data)
+    dataframe = polish_data(dataframe)
 
-    return df
-
-    # print(df.columns)
-    # print(df.head())
+    return dataframe
 
 
-def polish_data(df: pandas.DataFrame) -> pandas.DataFrame:
+def polish_data(dataframe: pandas.DataFrame) -> pandas.DataFrame:
     """
-    Remove unwanted data from dataframe
+    Remove unwanted data (useless information, null values, etc.) from the given dataframe and return the new dataframe
     """
 
-    columns_to_remove = ['isbn', 'text_reviews_count', 'series', 'asin', 'is_ebook', 'kindle_asin', 'format',
+    columns_to_remove = ['isbn', 'text_reviews_count', 'series', 'asin', 'kindle_asin', 'format',
                          'isbn13', 'publication_day', 'publication_month', 'edition_information', 'url',
-                         'work_id']
+                         'work_id', 'image_url']
 
-    df = df.drop(columns_to_remove, axis=1)
+    dataframe = dataframe.drop(columns_to_remove, axis=1)
 
-    df.replace('', nan, inplace=True)
+    dataframe.replace('', nan, inplace=True)
 
-    df.dropna(inplace=True)
+    dataframe.dropna(inplace=True)
 
-    # df.drop_duplicates(subset=['book_id'])
-
-    return df
+    return dataframe
 
 
 def read_data() -> pandas.DataFrame:
     """
-    Read dataframe data
+    Read dataframe data from the saved pkl file
     """
+
     return pandas.read_pickle(DATAFRAME_FILENAME)
 
 
-def save_data(df: pandas.DataFrame) -> None:
+def save_data(dataframe: pandas.DataFrame) -> None:
     """
-    Save dataframe data
+    Save dataframe data into a pkl file
     """
 
-    df.to_pickle(DATAFRAME_FILENAME)
+    dataframe.to_pickle(DATAFRAME_FILENAME)
 
 
-if __name__ == '__main__':
+try:
+    df = read_data()
+except FileNotFoundError:
+    save_data(load_data())
+    df = read_data()
 
-    try:
-        df = read_data()
-    except FileNotFoundError:
-        save_data(load_data())
-        df = read_data()
+library = Library()
+library.load_books(df)
 
-    # df = load_data()
+# counter = {}
+# for book in library.books:
+#     similar_books = library.books[book].similar_books
+#     for sb in similar_books:
+#         if sb not in counter:
+#             counter[sb] = 1
+#         else:
+#             counter[sb] += 1
+#
+# print({book for book in counter if counter[book] >= 50 and book in library.books})
 
-    library = Library()
-    library.load_books(df)
+# print(all(isinstance(library.books[book].num_pages, int) for book in library.books))
+# print(len(library.books))
 
-    # print(len(library.books))
-    # print(df.columns)
-    # print(df.isna())
+# p = Platform(library.books)  TODO: to be uncommented...
+# p.run()
