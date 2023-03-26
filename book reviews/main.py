@@ -8,8 +8,8 @@ import pandas
 from numpy import nan
 from gui import Platform
 from library import Library
-DATA_FILENAME = '/Users/kaiwenzheng/Desktop/CURRENT/csc111-group-project-gui-maria/book reviews/data/books.json.gz'
-DATAFRAME_FILENAME = '/Users/kaiwenzheng/Desktop/CURRENT/csc111-group-project-gui-maria/book reviews/data/dataframe.pkl'
+DATA_FILENAME = 'data/books.json.gz'
+DATAFRAME_FILENAME = 'data/dataframe.pkl'
 
 
 def load_data() -> pandas.DataFrame:
