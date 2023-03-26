@@ -6,7 +6,7 @@ import gzip
 import json
 
 
-DATA_FILENAME = '/Users/kaiwenzheng/Desktop/CURRENT/csc111-group-project-gui-maria/book reviews/data/authors.json.gz'
+DATA_FILENAME = 'data/authors.json.gz'
 
 
 def load_author_data() -> dict[int, str]:
