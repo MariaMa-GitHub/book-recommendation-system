@@ -6,8 +6,8 @@ import gzip
 import json
 import pandas
 from numpy import nan
-from gui import Platform
 from library import Library
+from gui import Platform
 DATA_FILENAME = 'data/books.json.gz'
 DATAFRAME_FILENAME = 'data/dataframe.pkl'
 
@@ -63,28 +63,30 @@ def save_data(dataframe: pandas.DataFrame) -> None:
     dataframe.to_pickle(DATAFRAME_FILENAME)
 
 
-try:
-    df = read_data()
-except FileNotFoundError:
-    save_data(load_data())
-    df = read_data()
+if __name__ == '__main__':
 
-library = Library()
-library.load_books(df)
+    try:
+        df = read_data()
+    except FileNotFoundError:
+        save_data(load_data())
+        df = read_data()
 
-# counter = {}
-# for book in library.books:
-#     similar_books = library.books[book].similar_books
-#     for sb in similar_books:
-#         if sb not in counter:
-#             counter[sb] = 1
-#         else:
-#             counter[sb] += 1
-#
-# print({book for book in counter if counter[book] >= 50 and book in library.books})
+    library = Library()
+    library.load_books(df)
 
-# print(all(isinstance(library.books[book].num_pages, int) for book in library.books))
-# print(len(library.books))
+    # counter = {}
+    # for book in library.books:
+    #     similar_books = library.books[book].similar_books
+    #     for sb in similar_books:
+    #         if sb not in counter:
+    #             counter[sb] = 1
+    #         else:
+    #             counter[sb] += 1
+    #
+    # print({book for book in counter if counter[book] >= 50 and book in library.books})
 
-# p = Platform(library.books)  TODO: to be uncommented...
-# p.run()
+    # print(all(isinstance(library.books[book].num_pages, int) for book in library.books))
+    # print(len(library.books))
+
+    p = Platform(library.books)
+    p.run()

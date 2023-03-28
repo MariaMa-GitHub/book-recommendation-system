@@ -5,10 +5,12 @@ Program GUI
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
-from book import Book
 from typing import Any
 import sys
 
+from book import Book
+from author import load_author_data
+from recommendation_system import RecommendationSystem
 
 APP_TITLE = 'Book Recommendation System'
 W_HEIGHT = 600
@@ -63,6 +65,7 @@ class Window(QMainWindow):
     categories: dict[str, list[Any]]
     current_book: int
     books = dict[int, Book]
+    recommended_books: dict[int, Book]
     similar_books: dict[int, Book]
     current_window: int
     num_windows: int
@@ -78,15 +81,17 @@ class Window(QMainWindow):
 
         self.data = {}
         self.categories = {
-            'genre': ['Genre 1', 'Genre 2', 'Genre 3'],
-            'language': ['Language1', 'Language 2', 'Language 3'],
-            'title': ['a', 'abc', 'b', 'cde', 'cderfedf'],
-            'author': ['aasdd', 'basda', 'cscas'],
-            'publisher': ['p23', 'sdfsdf2', 'asfsff'],
-            'publication year': ['2004', '203043', '232344']
+            'country': list({books[book].country for book in books}),
+            'language': list({books[book].language for book in books}),
+            'title': list({books[book].title for book in books}),
+            'author': list({f'{books[book].authors[author]} (ID {author})'
+                            for book in books for author in books[book].authors}),
+            'publisher': list({books[book].publisher for book in books}),
+            'publication year': list({str(books[book].publication_year) for book in books})
         }
         self.current_book = 0
         self.books = books
+        self.recommended_books = {}
         self.similar_books = {22642971: books[22642971], 8030991: books[8030991], 25421507: books[25421507]}
         self.current_window = 0
         self.num_windows = 0
@@ -113,6 +118,7 @@ class Window(QMainWindow):
         self.book_id_src.setTextMargins(5, 5, 5, 5)
         self.book_lst = QListWidget(None)
         self.book_lst.setFont(QFont('Arial', 16))
+        self.book_lst.addItems(self.get_recommended_books())
         self.book_lst.addItems(self.get_similar_books())
         self.book_lst.itemPressed.connect(self.select_book_id)
 
@@ -249,34 +255,34 @@ class Window(QMainWindow):
         widget3 = QWidget(None)
         layout3 = QGridLayout(widget3)
         layout3.setContentsMargins(50, 50, 50, 20)
-        genre_lbl = QLabel('Genre')
-        genre_lbl.setStyleSheet('margin-bottom: 10px')
-        genre_lbl.setFont(QFont('Times New Roman', 28))
-        genre_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.genre_lst = QListWidget(None)
-        self.genre_lst.setFont(QFont('Arial', 18))
-        self.genre_lst.addItems(self.categories['genre'] * 100)
-        self.genre_lst.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
-        self.genre_lst.setFixedSize(300, 100)
-        # genre_scr = QScrollArea()
-        # genre_scr.setFixedSize(300, 100)
-        # genre_scr.setWidgetResizable(True)
-        # genre_scr.setWidget(self.genre_lst)
+        country_lbl = QLabel('Country')
+        country_lbl.setStyleSheet('margin-bottom: 10px')
+        country_lbl.setFont(QFont('Times New Roman', 28))
+        country_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.country_lst = QListWidget(None)
+        self.country_lst.setFont(QFont('Arial', 18))
+        self.country_lst.addItems(self.categories['country'])
+        self.country_lst.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
+        self.country_lst.setFixedSize(300, 100)
+        # country_scr = QScrollArea()
+        # country_scr.setFixedSize(300, 100)
+        # country_scr.setWidgetResizable(True)
+        # country_scr.setWidget(self.country_lst)
         language_lbl = QLabel('Language')
         language_lbl.setStyleSheet('margin-bottom: 10px')
         language_lbl.setFont(QFont('Times New Roman', 28))
         language_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.language_lst = QListWidget(None)
         self.language_lst.setFont(QFont('Arial', 18))
-        self.language_lst.addItems(self.categories['language'] * 100)
+        self.language_lst.addItems(self.categories['language'])
         self.language_lst.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
         self.language_lst.setFixedSize(300, 100)
         # language_scr = QScrollArea()
         # language_scr.setFixedSize(300, 100)
         # language_scr.setWidgetResizable(True)
         # language_scr.setWidget(self.language_lst)
-        layout3.addWidget(genre_lbl, 0, 1)
-        layout3.addWidget(self.genre_lst, 1, 1)
+        layout3.addWidget(country_lbl, 0, 1)
+        layout3.addWidget(self.country_lst, 1, 1)
         layout3.addWidget(QLabel(''), 2, 1)
         layout3.addWidget(language_lbl, 3, 1)
         layout3.addWidget(self.language_lst, 4, 1)
@@ -405,7 +411,7 @@ class Window(QMainWindow):
                 dialog.setWindowTitle('Warning!')
                 dialog.exec()
         elif self.current_window == 2:
-            self.data['genre'] = [item.text() for item in self.genre_lst.selectedItems()]
+            self.data['country'] = [item.text() for item in self.country_lst.selectedItems()]
             self.data['language'] = [item.text() for item in self.language_lst.selectedItems()]
         elif self.current_window == 3:
             if self.title_src.text() in self.categories['title']:
@@ -429,6 +435,13 @@ class Window(QMainWindow):
             else:
                 self.data['ebook'] = False
 
+            self.recommend_books([(self.data['min_num_pages'], self.data['max_num_pages']),
+                                  self.data['country'],
+                                  self.data['language'],
+                                  self.data['title'],
+                                  [int(self.data['author'].split(' (ID')[1][:-1])],
+                                  self.data['publisher'],
+                                  self.data['publication year']])
             self.similar_books_search()
 
         if not error:
@@ -477,6 +490,31 @@ class Window(QMainWindow):
             self.current_book = int(self.book_id_src.text())
             self.book_txt.setText(self.get_book_info())
 
+    def recommend_books(self, preferences: list[Any]) -> None:
+        """
+        Recommend books with a recommendation system based on user preferences
+
+        Preconditions:
+        - len(preferences) == 7
+        """
+
+        rec_sys = RecommendationSystem(self.books)
+        rec_sys.initialize()
+        book_ids = rec_sys.recommend(preferences)
+        self.recommended_books = {book_id: self.books[book_id] for book_id in book_ids}
+
+    def get_recommended_books(self) -> list[str]:
+        """
+        Return a list of short book descriptions for the list of recommended books
+        """
+        recommended_books = []
+
+        for book_id in self.recommended_books:
+            book = self.recommended_books[book_id]
+            recommended_books.append(f'ID {book.book_id}: {book.title}')
+
+        return recommended_books
+
     def get_similar_books(self) -> list[str]:
         """
         Return a list of short book descriptions for the list of similar books
@@ -495,14 +533,8 @@ class Window(QMainWindow):
         """
         book = self.books[self.current_book]
 
-        if book.genres != set():
-            genres = '\nGenres:\n' + ''.join(['- ' + genre + '\n' for genre in book.genres])
-        else:
-            genres = ''
-
         return 'Title: ' + book.title + '\n\nAuthor(s): \n' \
             + ''.join(['- ' + book.authors[author] + '\n' for author in book.authors]) \
-            + genres \
             + '\nCountry: ' + book.country + '\nLanguage: ' + book.language + '\n\nNumber of pages: ' \
             + str(book.num_pages) + '\n\nAverage rating: ' + str(book.average_rating) + '\nRating count: ' \
             + str(book.ratings_count) + '\n\nDescription: \n\n' + book.description + '\n\nLink: ' + book.link
@@ -545,7 +577,6 @@ class Window(QMainWindow):
 
 
 if __name__ == '__main__':
-
     # p = Platform()
     # p.run()
 

@@ -5,10 +5,8 @@ a recommendation system) to make recommendations.
 """
 from __future__ import annotations
 from typing import Any
-from main import library
 
 
-LIBRARY = library.books
 SYSTEM_START = '*'
 
 
@@ -20,10 +18,11 @@ class RecommendationSystem:
     item: Any
     subsystems: dict[Any, RecommendationSystem]
 
-    def __init__(self, root: Any = SYSTEM_START) -> None:
+    def __init__(self, books: dict[int, Book], root: Any = SYSTEM_START) -> None:
         """Initialize this recommendation system."""
         self.item = root
         self.subsystems = {}
+        self.books = books
 
     def add_subsystem(self, subsystem: RecommendationSystem) -> None:
         """Add subsystem to this recommendation system."""
@@ -38,7 +37,7 @@ class RecommendationSystem:
         """
         if start != len(book_attributes):
             if book_attributes[start] not in self.subsystems:
-                self.add_subsystem(RecommendationSystem(book_attributes[start]))
+                self.add_subsystem(RecommendationSystem(self.books, book_attributes[start]))
             self.subsystems[book_attributes[start]]._insert_attributes_util(book_attributes, start + 1)
 
     def initialize(self) -> None:
@@ -49,21 +48,21 @@ class RecommendationSystem:
             - self.item == SYSTEM_START
             - self.subsystems == {}
         """
-        for book_id in LIBRARY:
-            attributes = LIBRARY[book_id].get_attributes()
+        for book_id in self.books:
+            attributes = self.books[book_id].get_attributes()
             authors = attributes[4]
             for author_id in authors:
                 attributes_copy = attributes[:4] + [author_id] + attributes[5:]
                 self.insert_attributes(attributes_copy)
 
-    def recommend(self, responses: list) -> set[str]:
+    def recommend(self, responses: list) -> set[int]:
         """Return a set of IDs of the recommended books based on the responses to a series
         of questions provided by the user.
 
         Preconditions:
             - len(responses) == 7
         """
-        return set(self._recommend_util(responses, 0))
+        return {int(book_id) for book_id in self._recommend_util(responses, 0)}
 
     def _recommend_util(self, responses: list, start: int) -> list[str]:
         """TODO: extract common parts"""
@@ -126,6 +125,7 @@ class RecommendationSystem:
 
 
 if __name__ == '__main__':
-    rec_sys = RecommendationSystem()
-    rec_sys.initialize()
-    print(rec_sys.recommend([(100, 500), 'US', 'eng', '', [50873, 232533], '', '']))
+    # rec_sys = RecommendationSystem()
+    # rec_sys.initialize()
+    # print(rec_sys.recommend([(100, 500), 'US', 'eng', '', [50873, 232533], '', '']))
+    pass
