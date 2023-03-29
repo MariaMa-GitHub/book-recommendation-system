@@ -3,7 +3,6 @@ use this graph-based recommendation system (called a relevance system) to make
 further recomendations.
 """
 from __future__ import annotations
-from recommendation_system import LIBRARY
 
 
 RELEVANCE_FACTOR = 50
@@ -63,10 +62,12 @@ class BookGraph:
 class SimilarBookSystem:
     """..."""
     book_graph: BookGraph
+    books: dict[int, Book]
 
-    def __init__(self) -> None:
+    def __init__(self, books: dict[int, Book]) -> None:
         """..."""
         self.book_graph = BookGraph()
+        self.books = books
 
     def initialize(self) -> None:
         """Initialize this similar book system.
@@ -74,9 +75,9 @@ class SimilarBookSystem:
         Preconditions:
             - self is empty an empty graph
         """
-        for book_id in LIBRARY:
+        for book_id in self.books:
             self.book_graph.add_vertex(book_id)
-            similar_books = LIBRARY[book_id].similar_books
+            similar_books = self.books[book_id].similar_books
             for similar_book_id in similar_books:
                 self.book_graph.add_vertex(similar_book_id)
                 self.book_graph.add_edge(book_id, similar_book_id)
@@ -87,11 +88,11 @@ class SimilarBookSystem:
         similar_books = set()
 
         for book_id in books:
-            similar_books.update(LIBRARY[book_id].similar_books)
+            similar_books.update(self.books[book_id].similar_books)
 
         for book_id in similar_books:
-            for lib_book in LIBRARY:
-                if book_id in LIBRARY[lib_book].similar_books:
+            for lib_book in self.books:
+                if book_id in self.books[lib_book].similar_books:
                     if book_id not in counter:
                         counter[book_id] = 1
                     else:
@@ -104,8 +105,9 @@ class SimilarBookSystem:
 
 
 if __name__ == '__main__':
-    sbs = SimilarBookSystem()
-    sbs.initialize()
+    # sbs = SimilarBookSystem()
+    # sbs.initialize()
     # print(len(sbs.recommend({12260608, 19500293, 21839887, 22642971, 16028447, 18736678, 26385201, 13576500, 24809790,
     #                          13533758, 18651847, 25782731, 20549965, 30163661, 7263842, 17065958, 27826791, 16128108,
     #                          34927215, 7989237, 19033466, 15713917})))
+    pass
