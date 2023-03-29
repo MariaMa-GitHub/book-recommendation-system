@@ -431,9 +431,9 @@ class Window(QMainWindow):
             else:
                 self.data['publication year'] = ''
             if self.ebook_rad.isChecked():
-                self.data['ebook'] = True
+                self.data['is_ebook'] = True
             else:
-                self.data['ebook'] = False
+                self.data['is_ebook'] = False
 
             self.recommend_books([(self.data['min_num_pages'], self.data['max_num_pages']),
                                   self.data['country'],
@@ -441,7 +441,8 @@ class Window(QMainWindow):
                                   self.data['title'],
                                   [int(self.data['author'].split(' (ID')[1][:-1])],
                                   self.data['publisher'],
-                                  self.data['publication year']])
+                                  self.data['publication year'],
+                                  self.data['is_ebook']])  # TODO: ...
             self.similar_books_search()
 
         if not error:
@@ -495,13 +496,14 @@ class Window(QMainWindow):
         Recommend books with a recommendation system based on user preferences
 
         Preconditions:
-        - len(preferences) == 7
+        - len(preferences) == 8
         """
 
         rec_sys = RecommendationSystem(self.books)
         rec_sys.initialize()
         book_ids = rec_sys.recommend(preferences)
         self.recommended_books = {book_id: self.books[book_id] for book_id in book_ids}
+        # print(f'self.recommended_books: {self.recommended_books}')  # todo: to be deleted
 
     def get_recommended_books(self) -> list[str]:
         """
