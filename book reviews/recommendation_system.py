@@ -9,7 +9,6 @@ from book import Book
 # from python_ta.contracts import check_contracts
 
 SYSTEM_START = '*'
-MATCH_SCORE = 7
 
 
 # @check_contracts
@@ -67,13 +66,33 @@ class RecommendationSystem:
             - len(responses) == 8
         """
         possible_recommended = self._recommend_util(responses, 0)
+        max_match = max(
+            possible_recommended,
+            key=lambda x: _get_match_score(self.books[x].get_attributes(), responses)
+        )
 
-        for i in range(len(possible_recommended) - 1, -1, -1):
-            book_attributes = self.books[possible_recommended[i]].get_attributes()
-            if _get_match_score(book_attributes, responses) < MATCH_SCORE:
-                possible_recommended.pop(i)
+        recommended = set()
+        for book in possible_recommended:
+            curr_match_score = _get_match_score(self.books[book].get_attributes(), responses)
+            # max_match_score = _get_match_score(self.books[max_match].get_attributes(), responses)
+            max_match_score = 35
+            print(curr_match_score, max_match_score)
+            if curr_match_score == max_match_score:
+                recommended.add(book)
 
-        return set(possible_recommended)
+        print(f'recommended: {recommended}')
+
+        return recommended
+        # print(f'possible_recommended: {possible_recommended}')
+
+        # for i in range(len(possible_recommended) - 1, -1, -1):
+        #     book_attributes = self.books[possible_recommended[i]].get_attributes()
+        #     if _get_match_score(book_attributes, responses) < MATCH_SCORE:
+        #         print(f'match score: {_get_match_score(book_attributes, responses)}')
+        #         possible_recommended.pop(i)
+        #
+        # print(f'possible_recommended: {possible_recommended}')
+        # return set(possible_recommended)
 
     def _recommend_util(self, responses: list, start: int) -> list[int]:
         """A helper method for RecommendationSystem.recommend."""
@@ -152,15 +171,21 @@ def _get_match_score(attributes: list, responses: list) -> int:
         - len(responses) == 8
         - isinstance(responses[0], tuple)
     """
-    total = 0
+    scores = []
 
     for i in range(len(responses)):
         if i == 0 and responses[i][0] <= attributes[i] <= responses[i][1]:
-            total += 1
+            scores.append(1)
         elif i > 0 and attributes[i] == responses[i]:
-            total += 1
+            scores.append(1)
+        else:
+            scores.append(0)
 
-    return total
+    scores[0] *= 10
+    scores[1] *= 10
+    scores[2] *= 10
+
+    return sum(scores)
 
 
 if __name__ == '__main__':
