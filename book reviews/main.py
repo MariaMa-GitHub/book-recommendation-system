@@ -1,92 +1,71 @@
 """
-Main Program
+Book Class
 """
 
-import gzip
-import json
 import pandas
-from numpy import nan
-from library import Library
-from gui import Platform
-DATA_FILENAME = 'data/books.json.gz'
-DATAFRAME_FILENAME = 'data/dataframe.pkl'
 
 
-def load_data() -> pandas.DataFrame:
+class Book:
     """
-    Read book csv data and store it into a Pandas dataframe
-    """
+    Contain all the information of a book
 
-    data = []
-    with gzip.open(DATA_FILENAME) as file:
-        for i in file:
-            d = json.loads(i)
-            data.append(d)
-
-    dataframe = pandas.DataFrame(data)
-    dataframe = polish_data(dataframe)
-
-    return dataframe
-
-
-def polish_data(dataframe: pandas.DataFrame) -> pandas.DataFrame:
-    """
-    Remove unwanted data (useless information, null values, etc.) from the given dataframe and return the new dataframe
+    Instance Attributes:
+    - book_id: book id
+    - title: book title
+    - is_ebook: whether this book has an e-book version
+    - authors: a mapping of author id to author name, represeting the author(s) of the book
+    - publisher: book publisher
+    - publication_year: publication year of the book
+    - country: book's country of origin
+    - language: language in which the book is written
+    - num_pages: number of pages of the book
+    - genres: a list of the genres of the book
+    - average_rating: the average of book's ratings
+    - ratings_count: the number of book's ratings
+    - description: description of the book
+    - similar_books: a set of similar books' ids
+    - link: Goodreads url of the book
     """
 
-    columns_to_remove = ['isbn', 'text_reviews_count', 'series', 'asin', 'kindle_asin', 'format',
-                         'isbn13', 'publication_day', 'publication_month', 'edition_information', 'url',
-                         'work_id', 'image_url']
+    book_id: int
+    title: str
+    is_ebook: bool
+    authors: dict[int, str]
+    publisher: str
+    publication_year: int
+    country: str
+    language: str
+    num_pages: int
+    genres: set[str]
+    average_rating: float
+    ratings_count: int
+    description: str
+    similar_books: set[int]
+    link: str
 
-    dataframe = dataframe.drop(columns_to_remove, axis=1)
+    def __init__(self, df: pandas.DataFrame, i: int):
+        """
+        Initialize book info using books dataframe
+        """
 
-    dataframe.replace('', nan, inplace=True)
+        self.book_id = int(df.iloc[i]['book_id'])
+        self.title = df.iloc[i]['title']
+        self.is_ebook = bool(df.iloc[i]['is_ebook'])
+        self.authors = {int(author['author_id']): '' for author in df.iloc[i]['authors']}
+        self.publisher = df.iloc[i]['publisher']
+        self.publication_year = int(df.iloc[i]['publication_year'])
+        self.country = df.iloc[i]['country_code']
+        self.language = df.iloc[i]['language_code']
+        self.num_pages = int(df.iloc[i]['num_pages'])
+        self.genres = {shelf['name'] for shelf in df.iloc[i]['popular_shelves'] if int(shelf['count']) >= 10}
+        self.average_rating = float(df.iloc[i]['average_rating'])
+        self.ratings_count = int(df.iloc[i]['ratings_count'])
+        self.description = df.iloc[i]['description']
+        self.similar_books = {int(book_id) for book_id in df.iloc[i]['similar_books']}
+        self.link = df.iloc[i]['link']
 
-    dataframe.dropna(inplace=True)
-
-    return dataframe
-
-
-def read_data() -> pandas.DataFrame:
-    """
-    Read dataframe data from the saved pkl file
-    """
-
-    return pandas.read_pickle(DATAFRAME_FILENAME)
-
-
-def save_data(dataframe: pandas.DataFrame) -> None:
-    """
-    Save dataframe data into a pkl file
-    """
-
-    dataframe.to_pickle(DATAFRAME_FILENAME)
-
-
-if __name__ == '__main__':
-
-    try:
-        df = read_data()
-    except FileNotFoundError:
-        save_data(load_data())
-        df = read_data()
-
-    library = Library()
-    library.load_books(df)
-
-    # counter = {}
-    # for book in library.books:
-    #     similar_books = library.books[book].similar_books
-    #     for sb in similar_books:
-    #         if sb not in counter:
-    #             counter[sb] = 1
-    #         else:
-    #             counter[sb] += 1
-    #
-    # print({book for book in counter if counter[book] >= 50 and book in library.books})
-
-    # print(all(isinstance(library.books[book].num_pages, int) for book in library.books))
-    # print(len(library.books))
-
-    p = Platform(library.books)
-    p.run()
+    def get_attributes(self) -> list:
+        """Return a list of attributes that are used in the tree-based recommendation system."""
+        return [self.num_pages, self.country, self.language,
+                self.title, self.authors, self.publisher, self.publication_year,
+                self.is_ebook, self.book_id]
