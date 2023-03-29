@@ -12,6 +12,7 @@ class Book:
     Instance Attributes:
     - book_id: book id
     - title: book title
+    - is_ebook: whether this book has an e-book version
     - authors: a mapping of author id to author name, represeting the author(s) of the book
     - publisher: book publisher
     - publication_year: publication year of the book
@@ -28,6 +29,7 @@ class Book:
 
     book_id: int
     title: str
+    is_ebook: bool
     authors: dict[int, str]
     publisher: str
     publication_year: int
@@ -48,6 +50,7 @@ class Book:
 
         self.book_id = int(df.iloc[i]['book_id'])
         self.title = df.iloc[i]['title']
+        self.is_ebook = bool(df.iloc[i]['is_ebook'])
         self.authors = {int(author['author_id']): '' for author in df.iloc[i]['authors']}
         self.publisher = df.iloc[i]['publisher']
         self.publication_year = int(df.iloc[i]['publication_year'])
@@ -64,4 +67,5 @@ class Book:
     def get_attributes(self) -> list:
         """Return a list of attributes that are used in the tree-based recommendation system."""
         return [self.num_pages, self.country, self.language,
-                self.title, self.authors, self.publisher, self.publication_year, self.book_id]
+                self.title, self.authors, self.publisher, self.publication_year,
+                self.is_ebook, self.book_id]
