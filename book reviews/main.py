@@ -8,6 +8,9 @@ import pandas
 from numpy import nan
 from library import Library
 from gui import Platform
+
+from recommendation_system import RecommendationSystem
+
 DATA_FILENAME = 'data/books.json.gz'
 DATAFRAME_FILENAME = 'data/dataframe.pkl'
 
@@ -74,5 +77,16 @@ if __name__ == '__main__':
     library = Library()
     library.load_books(df)
 
-    p = Platform(library.books)
-    p.run()
+    rec_sys = RecommendationSystem(library.books)
+    rec_sys.initialize()
+
+    min_num_pages = int(input('Enter min_num_pages: '))
+    max_num_pages = int(input('Enter max_num_pages: '))
+    country = input('Enter country: ')
+    language = input('Enter language: ')
+    author = int(input('Enter author: '))
+    responses = [(min_num_pages, max_num_pages), country, language, None, author, None, None, None]
+
+    print(rec_sys.recommend(responses))
+    # p = Platform(library.books)
+    # p.run()
