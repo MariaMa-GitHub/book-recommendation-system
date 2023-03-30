@@ -64,8 +64,8 @@ class Book:
         self.similar_books = {int(book_id) for book_id in df.iloc[i]['similar_books']}
         self.link = df.iloc[i]['link']
 
-    def get_attributes(self) -> list:
+    def get_attributes(self) -> tuple:
         """Return a list of attributes that are used in the tree-based recommendation system."""
-        return [self.num_pages, self.country, self.language,
-                self.title, self.authors, self.publisher, self.publication_year,
-                self.is_ebook, self.book_id]
+        return (self.num_pages, self.country, self.language,
+                self.title, frozenset(self.authors.keys()), self.publisher, self.publication_year,
+                self.is_ebook, self.book_id)
