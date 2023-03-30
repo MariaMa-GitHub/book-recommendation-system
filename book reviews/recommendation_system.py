@@ -6,6 +6,7 @@ a recommendation system) to make recommendations.
 from __future__ import annotations
 from typing import Any
 from book import Book
+import random
 # from python_ta.contracts import check_contracts
 
 SYSTEM_START = '*'
@@ -30,13 +31,13 @@ class RecommendationSystem:
         """Add subsystem to this recommendation system."""
         self.subsystems[subsystem.item] = subsystem
 
-    def insert_attributes(self, book_attributes: list) -> None:
+    def insert_attributes(self, book_attributes: tuple) -> None:
         """Insert book_attributes into this recommendation system such that every next
         entry in book_attributes is a child of the current one.
         """
         self._insert_attributes_util(book_attributes, 0)
 
-    def _insert_attributes_util(self, book_attributes: list, start: int) -> None:
+    def _insert_attributes_util(self, book_attributes: tuple, start: int) -> None:
         """A helper method for RecommendationSystem.insert_attributes."""
         if start != len(book_attributes):
             if book_attributes[start] not in self.subsystems:
@@ -55,8 +56,10 @@ class RecommendationSystem:
             attributes = self.books[book_id].get_attributes()
             authors = attributes[4]
             for author_id in authors:
-                attributes_copy = attributes[:4] + [author_id] + attributes[5:]
+                attributes_copy = attributes[:4] + tuple([author_id]) + attributes[5:]
+                # print(attributes_copy)
                 self.insert_attributes(attributes_copy)
+            # print()
 
     def recommend(self, responses: list) -> set[int]:
         """Return a set of IDs of the recommended books based on the responses to a series
@@ -71,28 +74,23 @@ class RecommendationSystem:
             key=lambda x: _get_match_score(self.books[x].get_attributes(), responses)
         )
 
-        recommended = set()
+        recommended = []
         for book in possible_recommended:
             curr_match_score = _get_match_score(self.books[book].get_attributes(), responses)
-            # max_match_score = _get_match_score(self.books[max_match].get_attributes(), responses)
-            max_match_score = 35
+            max_match_score = _get_match_score(self.books[max_match].get_attributes(), responses)
             print(curr_match_score, max_match_score)
             if curr_match_score == max_match_score:
-                recommended.add(book)
+                print(f'book, curr_match_score: {book, curr_match_score}')
+                print('if condition satisfied')
+                recommended.append(book)
+                print(f'recommended: {recommended}\n')
 
-        print(f'recommended: {recommended}')
-
-        return recommended
-        # print(f'possible_recommended: {possible_recommended}')
-
-        # for i in range(len(possible_recommended) - 1, -1, -1):
-        #     book_attributes = self.books[possible_recommended[i]].get_attributes()
-        #     if _get_match_score(book_attributes, responses) < MATCH_SCORE:
-        #         print(f'match score: {_get_match_score(book_attributes, responses)}')
-        #         possible_recommended.pop(i)
-        #
-        # print(f'possible_recommended: {possible_recommended}')
-        # return set(possible_recommended)
+        if len(recommended) > 60:
+            return set(random.sample(recommended, 60))
+        else:
+            return set(recommended)
+        # print(counter)
+        # print(counter == len(recommended))
 
     def _recommend_util(self, responses: list, start: int) -> list[int]:
         """A helper method for RecommendationSystem.recommend."""
@@ -135,24 +133,24 @@ class RecommendationSystem:
     #             counter += self.subsystems[subsystem].num_leaves()
     #         return counter
     #
-    # def str_rep(self, depth: int) -> str:
-    #     if self.subsystems == {}:
-    #         if self.item == '*':
-    #             return '*'
-    #         else:
-    #             return ' ' * depth + str(self.item)
-    #     else:
-    #         result = ' ' * depth + f'{self.item}\n'
-    #         for sub in self.subsystems:
-    #             curr_sub = self.subsystems[sub]
-    #             result += curr_sub.str_rep(depth + 1)
-    #         return result
-    #
-    # def __str__(self) -> str:
-    #     return self.str_rep(0)
+    def str_rep(self, depth: int) -> str:
+        if self.subsystems == {}:
+            if self.item == '*':
+                return '*'
+            else:
+                return ' ' * depth + str(self.item) + str(type(self.item))
+        else:
+            result = ' ' * depth + f'{self.item} + {type(self.item)}\n'
+            for sub in self.subsystems:
+                curr_sub = self.subsystems[sub]
+                result += curr_sub.str_rep(depth + 1)
+            return result
+
+    def __str__(self) -> str:
+        return self.str_rep(0)
 
 
-def _get_match_score(attributes: list, responses: list) -> int:
+def _get_match_score(attributes: tuple, responses: list) -> int:
     """Return the match score between attributes and responses.
 
     Let attributes be the list of attributes of a given book defined in the method
@@ -171,21 +169,24 @@ def _get_match_score(attributes: list, responses: list) -> int:
         - len(responses) == 8
         - isinstance(responses[0], tuple)
     """
-    scores = []
+    # TODO: please read the following
+    # The collection of authors in Book is returned as a frozenset, so we need to first break this
+    # collection down and then see whether the author the user is looking for is in such a collection
+    total = 0
 
     for i in range(len(responses)):
-        if i == 0 and responses[i][0] <= attributes[i] <= responses[i][1]:
-            scores.append(1)
-        elif i > 0 and attributes[i] == responses[i]:
-            scores.append(1)
+        if i == 0:
+            if responses[i][0] <= attributes[i] <= responses[i][1]:
+                total += 10
         else:
-            scores.append(0)
+            if i < 3 and responses[i] == attributes[i]:
+                total += 10
+            elif (i == 3 and responses[i] == attributes[i]) or (i > 4 and responses[i] == attributes[i]):
+                total += 1
+            elif i == 4 and any(author == responses[i] for author in attributes[i]):
+                total += 1
 
-    scores[0] *= 10
-    scores[1] *= 10
-    scores[2] *= 10
-
-    return sum(scores)
+    return total
 
 
 if __name__ == '__main__':
