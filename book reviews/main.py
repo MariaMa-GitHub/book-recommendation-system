@@ -67,7 +67,6 @@ def save_data(dataframe: pandas.DataFrame) -> None:
 
 
 if __name__ == '__main__':
-
     try:
         df = read_data()
     except FileNotFoundError:
@@ -77,16 +76,5 @@ if __name__ == '__main__':
     library = Library()
     library.load_books(df)
 
-    rec_sys = RecommendationSystem(library.books)
-    rec_sys.initialize()
-
-    min_num_pages = int(input('Enter min_num_pages: '))
-    max_num_pages = int(input('Enter max_num_pages: '))
-    country = input('Enter country: ')
-    language = input('Enter language: ')
-    author = int(input('Enter author: '))
-    responses = [(min_num_pages, max_num_pages), country, language, None, author, None, None, None]
-
-    print(rec_sys.recommend(responses))
-    # p = Platform(library.books)
-    # p.run()
+    p = Platform(library.books)
+    p.run()
