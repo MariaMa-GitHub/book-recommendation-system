@@ -1,18 +1,17 @@
-"""If the given user has no past reading records stores in the manager system OR the user
-with an existing account wants to explore books whose genres are not contained in this
-user's past reading activities, use this decision-tree-based recommendation system (called
-a recommendation system) to make recommendations.
-"""
+"""Recommendation System"""
 from __future__ import annotations
 from typing import Any
 from book import Book
 import random
-# from python_ta.contracts import check_contracts
+
 
 SYSTEM_START = '*'
+RELEVANCE_FACTOR = 50
 
 
-# @check_contracts
+##################################################################
+#          Recommendation System for Finding New Books           #
+##################################################################
 class RecommendationSystem:
     """A recommendation system based on the decision tree. This system is used when
     either the user has no account recorded or the user wants to explore books of genres
@@ -57,9 +56,7 @@ class RecommendationSystem:
             authors = attributes[4]
             for author_id in authors:
                 attributes_copy = attributes[:4] + tuple([author_id]) + attributes[5:]
-                # print(attributes_copy)
                 self.insert_attributes(attributes_copy)
-            # print()
 
     def recommend(self, responses: list) -> set[int]:
         """Return a set of IDs of the recommended books based on the responses to a series
@@ -78,19 +75,14 @@ class RecommendationSystem:
         for book in possible_recommended:
             curr_match_score = _get_match_score(self.books[book].get_attributes(), responses)
             max_match_score = _get_match_score(self.books[max_match].get_attributes(), responses)
-            print(curr_match_score, max_match_score)
+            # print(curr_match_score, max_match_score)
             if curr_match_score == max_match_score:
-                print(f'book, curr_match_score: {book, curr_match_score}')
-                print('if condition satisfied')
                 recommended.append(book)
-                print(f'recommended: {recommended}\n')
 
         if len(recommended) > 60:
             return set(random.sample(recommended, 60))
         else:
             return set(recommended)
-        # print(counter)
-        # print(counter == len(recommended))
 
     def _recommend_util(self, responses: list, start: int) -> list[int]:
         """A helper method for RecommendationSystem.recommend."""
@@ -118,37 +110,6 @@ class RecommendationSystem:
 
         return all_recommended
 
-    # def height(self) -> int:
-    #     if self.subsystems == {}:
-    #         return 1
-    #     else:
-    #         return 1 + max(self.subsystems[subsystem].height() for subsystem in self.subsystems)
-    #
-    # def num_leaves(self) -> int:
-    #     if self.subsystems == {}:
-    #         return 1
-    #     else:
-    #         counter = 0
-    #         for subsystem in self.subsystems:
-    #             counter += self.subsystems[subsystem].num_leaves()
-    #         return counter
-    #
-    def str_rep(self, depth: int) -> str:
-        if self.subsystems == {}:
-            if self.item == '*':
-                return '*'
-            else:
-                return ' ' * depth + str(self.item) + str(type(self.item))
-        else:
-            result = ' ' * depth + f'{self.item} + {type(self.item)}\n'
-            for sub in self.subsystems:
-                curr_sub = self.subsystems[sub]
-                result += curr_sub.str_rep(depth + 1)
-            return result
-
-    def __str__(self) -> str:
-        return self.str_rep(0)
-
 
 def _get_match_score(attributes: tuple, responses: list) -> int:
     """Return the match score between attributes and responses.
@@ -167,30 +128,155 @@ def _get_match_score(attributes: tuple, responses: list) -> int:
     Preconditions:
         - len(attributes) == 9
         - len(responses) == 8
-        - isinstance(responses[0], tuple)
     """
-    # TODO: please read the following
-    # The collection of authors in Book is returned as a frozenset, so we need to first break this
-    # collection down and then see whether the author the user is looking for is in such a collection
     total = 0
 
     for i in range(len(responses)):
-        if i == 0:
-            if responses[i][0] <= attributes[i] <= responses[i][1]:
-                total += 10
-        else:
-            if i < 3 and responses[i] == attributes[i]:
-                total += 10
-            elif (i == 3 and responses[i] == attributes[i]) or (i > 4 and responses[i] == attributes[i]):
-                total += 1
-            elif i == 4 and any(author == responses[i] for author in attributes[i]):
-                total += 1
+        if i == 0 and responses[i][0] <= attributes[i] <= responses[i][1]:
+            total += 10
+        elif 0 < i < 3 and any(response == attributes[i] for response in responses[i]):
+            total += 10
+        elif (i == 3 and responses[i] == attributes[i]) or (i > 4 and responses[i] == attributes[i]):
+            total += 1
+        elif i == 4 and any(author == responses[i] for author in attributes[i]):
+            total += 1
 
     return total
 
 
+#################################################################
+#            Recommendation System for Similar Books            #
+#################################################################
+class _BookVertex:
+    """A _BookVertex class that represents a book in a graph.
+
+    Instance Attributes:
+        - book_id: the ID of this book
+        - similar_books: the IDs of books that are similar to this book
+
+    Representation Invariants:
+        - all(book.book_id != self.book_id for book in self.similar_books)
+    """
+    book_id: int  # book_id
+    similar_books: set[_BookVertex]  # ids of similar books
+
+    def __init__(self, book_id: int, similar_books: set[_BookVertex]) -> None:
+        """Initialize this book vertex."""
+        self.book_id = book_id
+        self.similar_books = similar_books
+
+
+class BookGraph:
+    """A BookGraph that represents a graph of books. Specifically, every book in
+    this graph is connected to another book that is similar to itself.
+    """
+    books: dict[int, _BookVertex]
+
+    def __init__(self) -> None:
+        """..."""
+        self.books = {}
+
+    def __contains__(self, book_id: int) -> bool:
+        """Return whether book_id is in self.vertices."""
+        return book_id in self.books
+
+    def add_book(self, book_id: int) -> None:
+        """Add the book with book_id to this book graph.
+
+        Preconditions:
+            - book_id not in self.book_ids
+        """
+        self.books[book_id] = _BookVertex(book_id, set())
+
+    def connect_books(self, book_id1: int, book_id2: int) -> None:
+        """Connect books with book_id1 and book_id2 with an edge in this book graph.
+        If either of those books are not presented in the graph, then first add it
+        to this graph and then connect them together.
+
+        Preconditions:
+            - book_id1 != book_id2
+        """
+        if book_id1 not in self.books:
+            self.add_book(book_id1)
+
+        if book_id2 not in self.books:
+            self.add_book(book_id2)
+
+        book1 = self.books[book_id1]
+        book2 = self.books[book_id2]
+        book1.similar_books.add(book2)
+        book2.similar_books.add(book1)
+
+    # def __str__(self) -> str:
+    #     str_rep = ''
+    #     for book in self.books:
+    #         similar_books = [book.book_id for book in self.books[book].similar_books]
+    #         str_rep += f'{book}: {similar_books}\n'
+    #
+    #     return str_rep
+
+
+class SimilarBookSystem:
+    """A SimilarBookSystem class that represents a recommendation system that searches
+    for similar books.
+
+    Books that are similar to each other are connected by an edge in this system's book
+    graph.
+
+    Instance Attributes:
+        - book_graph: a book graph in this system that connects each pair of similar books
+        - books: a dictionary that maps each book's ID to the corresponding Book object
+    """
+    book_graph: BookGraph
+    books: dict[int, Book]
+
+    def __init__(self, books: dict[int, Book]) -> None:
+        """..."""
+        self.book_graph = BookGraph()
+        self.books = books
+
+    def initialize(self) -> None:
+        """Initialize this similar book system.
+
+        Preconditions:
+            - self is empty an empty graph
+        """
+        for book_id in self.books:
+            self.book_graph.add_book(book_id)
+            similar_books = self.books[book_id].similar_books
+            for similar_book_id in similar_books:
+                self.book_graph.add_book(similar_book_id)
+                self.book_graph.connect_books(book_id, similar_book_id)
+
+    def recommend(self, books: set[int]) -> set[int]:
+        """Return a set of IDs of books that are similar to those in books.
+        Every book in the returned set cannot appear in books.
+        """
+        counter = {}
+        similar_books = set()
+
+        for book_id in books:
+            similar_books.update(self.books[book_id].similar_books)
+
+        for book_id in similar_books:
+            for lib_book in self.books:
+                if book_id in self.books[lib_book].similar_books:
+                    if book_id not in counter:
+                        counter[book_id] = 1
+                    else:
+                        counter[book_id] += 1
+
+        counter = list(counter.items())
+        counter.sort(reverse=True, key=lambda tup: tup[1])
+
+        return {book_id for book_id, book_freq in counter
+                if book_freq >= RELEVANCE_FACTOR and book_id not in books}
+
+
 if __name__ == '__main__':
-    # rec_sys = RecommendationSystem()
-    # rec_sys.initialize()
-    # print(rec_sys.recommend([(100, 500), 'US', 'eng', '', [50873, 232533], '', '']))
+    # sbs = SimilarBookSystem()
+    # sbs.initialize()
+    # print(len(sbs.recommend({12260608, 19500293, 21839887, 22642971, 16028447, 18736678, 26385201, 13576500, 24809790,
+    #                          13533758, 18651847, 25782731, 20549965, 30163661, 7263842, 17065958, 27826791, 16128108,
+    #                          34927215, 7989237, 19033466, 15713917})))
     pass
