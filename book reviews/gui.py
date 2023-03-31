@@ -92,7 +92,8 @@ class Window(QMainWindow):
         self.current_book = 0
         self.books = books
         self.recommended_books = {}
-        self.similar_books = {22642971: books[22642971], 8030991: books[8030991], 25421507: books[25421507]}
+        # self.similar_books = {22642971: books[22642971], 8030991: books[8030991], 25421507: books[25421507]}
+        self.similar_books = {}
         self.current_window = 0
         self.num_windows = 0
         self.setWindowTitle(APP_TITLE)
@@ -414,35 +415,35 @@ class Window(QMainWindow):
             self.data['country'] = [item.text() for item in self.country_lst.selectedItems()]
             self.data['language'] = [item.text() for item in self.language_lst.selectedItems()]
         elif self.current_window == 3:
-            if self.title_src.text() in self.categories['title']:
+            if self.title_src.text() in self.categories['title'] and self.title_src.text() != '':
                 self.data['title'] = self.title_src.text()
             else:
-                self.data['title'] = ''
-            if self.author_src.text() in self.categories['author']:
-                self.data['author'] = self.author_src.text()
+                self.data['title'] = None
+            if self.author_src.text() in self.categories['author'] and self.author_src.text() != '':
+                self.data['author'] = int(self.author_src.text().split(' (ID')[1][:-1])
             else:
-                self.data['author'] = ''
-            if self.publisher_src.text() in self.categories['publisher']:
+                self.data['author'] = None
+            if self.publisher_src.text() in self.categories['publisher'] and self.publisher_src.text() != '':
                 self.data['publisher'] = self.publisher_src.text()
             else:
-                self.data['publisher'] = ''
-            if self.pub_year_src.text() in self.categories['publication year']:
+                self.data['publisher'] = None
+            if self.pub_year_src.text() in self.categories['publication year'] and self.pub_year_src.text() != '':
                 self.data['publication year'] = self.pub_year_src.text()
             else:
-                self.data['publication year'] = ''
+                self.data['publication year'] = None
             if self.ebook_rad.isChecked():
-                self.data['is_ebook'] = True  # KAIWENZHENG: changed from ebook to is_ebook
+                self.data['is_ebook'] = True
             else:
-                self.data['is_ebook'] = False  # KAIWENZHENG: changed from ebook to is_ebook
+                self.data['is_ebook'] = None
 
             self.recommend_books([(self.data['min_num_pages'], self.data['max_num_pages']),
                                   self.data['country'],
                                   self.data['language'],
                                   self.data['title'],
-                                  [int(self.data['author'].split(' (ID')[1][:-1])],
+                                  self.data['author'],
                                   self.data['publisher'],
                                   self.data['publication year'],
-                                  self.data['is_ebook']])  # KAIWENZHENG: added self.data['is_ebook']
+                                  self.data['is_ebook']])
             self.similar_books_search()
 
         if not error:
@@ -503,7 +504,6 @@ class Window(QMainWindow):
         rec_sys.initialize()
         book_ids = rec_sys.recommend(preferences)
         self.recommended_books = {book_id: self.books[book_id] for book_id in book_ids}
-        # print(f'self.recommended_books: {self.recommended_books}')
 
     def get_recommended_books(self) -> list[str]:
         """
