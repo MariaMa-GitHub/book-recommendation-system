@@ -1,0 +1,16 @@
+# CSC111 Winter 2023: External Python Libraries Used in Course Project
+
+# This file lists all the external Python packages we use in our course
+# project. Prior to running the overall program, please first install
+# all packages listed in this .txt file by right-clicking in the blank
+# space and selecting *Install All Packages*.
+
+# Code checking
+python-ta~=2.4.2
+
+# Data wrangling
+numpy==1.24.2
+pandas==1.5.3
+
+# GUI
+PyQt6==6.4.2
