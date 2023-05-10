@@ -1,1 +1,1 @@
-# UofT CSC111 Group Project - Book Recommendation System
+# UofT | CSC111 Group Project - Book Recommendation System
